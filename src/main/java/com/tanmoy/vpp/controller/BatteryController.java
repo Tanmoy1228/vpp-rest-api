@@ -36,7 +36,7 @@ public class BatteryController {
         logger.info("Process insert batteries request: Size={}: START", batteryListRequest.getBatteries().size());
 
         List<Battery> batteries = batteryListRequest.getBatteries().stream()
-                .map(req -> new Battery(req.getName(), req.getPostcode(), req.getCapacity()))
+                .map(req -> Battery.of(req.getName(), req.getPostcode(), req.getCapacity()))
                 .collect(Collectors.toList());
 
         batteryService.saveAll(batteries);

@@ -38,8 +38,8 @@ class BatteryServiceImplTest {
     void shouldSaveAllValidBatteries() {
 
         List<Battery> batteries = List.of(
-                new Battery("Battery1", "6000", 1000),
-                new Battery("Battery2", "6001", 2000)
+                Battery.of("Battery1", "6000", 1000),
+                Battery.of("Battery2", "6001", 2000)
         );
 
         batteryService.saveAll(batteries);
@@ -52,7 +52,7 @@ class BatteryServiceImplTest {
     @Test
     void shouldHandleTransactionSystemExceptions() {
 
-        List<Battery> batteries = List.of(new Battery("Battery", "6000", 1000));
+        List<Battery> batteries = List.of(Battery.of("Battery", "6000", 1000));
 
         when(batteryRepository.saveAll(anyList()))
                 .thenThrow(new TransactionSystemException("Transaction failed"));
@@ -68,8 +68,8 @@ class BatteryServiceImplTest {
     void shouldRollbackTransactionWhenPartialSaveFails() {
 
         List<Battery> batteries = List.of(
-                new Battery("Battery", "6000", 1000),
-                new Battery("Battery", "6001", 0)
+                Battery.of("Battery", "6000", 1000),
+                Battery.of("Battery", "6001", 0)
         );
 
         when(batteryRepository.saveAll(anyList()))
@@ -95,7 +95,7 @@ class BatteryServiceImplTest {
         for (int i = 0; i < numberOfConcurrentRequests; i++) {
             int index = i;
             executorService.submit(() -> {
-                Battery battery = new Battery("ConcurrentBattery-" + index, "600" + (index % 10), 1000 + index);
+                Battery battery = Battery.of("ConcurrentBattery-" + index, "600" + (index % 10), 1000 + index);
                 batteryService.saveAll(List.of(battery));
                 latch.countDown();
             });
@@ -110,9 +110,9 @@ class BatteryServiceImplTest {
     @Test
     void shouldReturnFilteredAndSortedBatteriesInRange() {
 
-        Battery battery1 = new Battery("Alpha", "6000", 1000);
-        Battery battery2 = new Battery("Beta", "6001", 2000);
-        Battery battery3 = new Battery("Gamma", "6002", 3000);
+        Battery battery1 = Battery.of("Alpha", "6000", 1000);
+        Battery battery2 = Battery.of("Beta", "6001", 2000);
+        Battery battery3 = Battery.of("Gamma", "6002", 3000);
 
         List<Battery> mockList = List.of(battery2, battery3, battery1);
 
@@ -130,9 +130,9 @@ class BatteryServiceImplTest {
     @Test
     void shouldApplyMinAndMaxCapacityFilter() {
 
-        Battery battery1 = new Battery("Alpha", "6100", 500);
-        Battery battery2 = new Battery("Beta", "6101", 1500);
-        Battery battery3 = new Battery("Gamma", "6102", 2500);
+        Battery battery1 = Battery.of("Alpha", "6100", 500);
+        Battery battery2 = Battery.of("Beta", "6101", 1500);
+        Battery battery3 = Battery.of("Gamma", "6102", 2500);
 
         List<Battery> mockList = List.of(battery2, battery3);
 
@@ -164,8 +164,8 @@ class BatteryServiceImplTest {
     @Test
     void shouldHandleNullCapacityFilters() {
 
-        Battery battery1 = new Battery("Alpha", "6000", 1000);
-        Battery battery2 = new Battery("Beta", "6001", 2000);
+        Battery battery1 = Battery.of("Alpha", "6000", 1000);
+        Battery battery2 = Battery.of("Beta", "6001", 2000);
 
         List<Battery> mockList = List.of(battery1, battery2);
 
@@ -183,7 +183,7 @@ class BatteryServiceImplTest {
     @Test
     void shouldHandleBoundaryPostcodeValues() {
 
-        Battery battery = new Battery("Boundary", "9999", 1000);
+        Battery battery = Battery.of("Boundary", "9999", 1000);
 
         List<Battery> mockList = List.of(battery);
 
@@ -202,7 +202,7 @@ class BatteryServiceImplTest {
     void shouldHandleLargeResultSet() {
 
         List<Battery> largeList = IntStream.range(0, 1000)
-                .mapToObj(i -> new Battery("Battery-" + i, "6000", 1000))
+                .mapToObj(i -> Battery.of("Battery-" + i, "6000", 1000))
                 .collect(Collectors.toList());
 
         when(batteryRepository.findInRangeWithOptionalCapacity(
@@ -224,7 +224,7 @@ class BatteryServiceImplTest {
     @Test
     void shouldHandleZeroCapacityValues() {
 
-        Battery battery = new Battery("Zero", "6000", 0);
+        Battery battery = Battery.of("Zero", "6000", 0);
 
         List<Battery> mockList = List.of(battery);
 

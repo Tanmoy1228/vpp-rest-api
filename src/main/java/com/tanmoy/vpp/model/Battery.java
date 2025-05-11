@@ -22,12 +22,15 @@ public class Battery {
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
 
+    @Column(name = "postcode_numeric", nullable = false)
+    private Integer postcodeNumeric;
 
     public Battery() {}
 
-    public Battery(String name, String postcode, Integer capacity) {
+    private Battery(String name, String postcode, int postcodeNumeric, int capacity) {
         this.name = name;
         this.postcode = postcode;
+        this.postcodeNumeric = postcodeNumeric;
         this.capacity = capacity;
     }
 
@@ -61,5 +64,17 @@ public class Battery {
 
     public void setCapacity(Integer capacity) {
         this.capacity = capacity;
+    }
+
+    public Integer getPostcodeNumeric() {
+        return postcodeNumeric;
+    }
+
+    public void setPostcodeNumeric(Integer postcodeNumeric) {
+        this.postcodeNumeric = postcodeNumeric;
+    }
+
+    public static Battery of(String name, String postcode, int capacity) {
+        return new Battery(name, postcode, Integer.parseInt(postcode), capacity);
     }
 }
