@@ -1,6 +1,6 @@
 package com.tanmoy.vpp.controller;
 
-import com.tanmoy.vpp.dto.request.BatteryRequestDto;
+import com.tanmoy.vpp.dto.request.BatteryListRequest;
 import com.tanmoy.vpp.dto.response.SuccessResponseDto;
 import com.tanmoy.vpp.model.Battery;
 import com.tanmoy.vpp.service.BatteryService;
@@ -33,19 +33,19 @@ public class BatteryController {
 
     @PostMapping
     public ResponseEntity<SuccessResponseDto> insertBatteries(
-            @RequestBody @Valid List<BatteryRequestDto> batteryRequests) {
+            @RequestBody @Valid BatteryListRequest batteryListRequest) {
 
-        logger.info("Process insert batteries request: Size={}: START", batteryRequests.size());
+        logger.info("Process insert batteries request: Size={}: START", batteryListRequest.getBatteries().size());
 
-        List<Battery> batteries = batteryRequests.stream()
+        List<Battery> batteries = batteryListRequest.getBatteries().stream()
                 .map(req -> new Battery(req.getName(), req.getPostcode(), req.getCapacity()))
                 .collect(Collectors.toList());
 
         batteryService.saveAll(batteries);
 
-        logger.info("Process insert batteries request: Size={}: COMPLETE", batteryRequests.size());
+        logger.info("Process insert batteries request: Size={}: COMPLETE", batteryListRequest.getBatteries().size());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new SuccessResponseDto("Saved " + batteryRequests.size() + " batteries successfully."));
+                .body(new SuccessResponseDto("Saved " + batteryListRequest.getBatteries().size() + " batteries successfully."));
     }
 }
