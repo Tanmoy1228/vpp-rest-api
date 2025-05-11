@@ -23,6 +23,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -43,6 +44,15 @@ public class BatteryControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         batteryRepository.deleteAll();
+    }
+
+    private void saveDefaultTestBatteries() {
+        batteryRepository.saveAll(List.of(
+                new Battery("Alpha", "6000", 1000),
+                new Battery("Beta", "6001", 2000),
+                new Battery("Gamma", "6002", 3000),
+                new Battery("Delta", "6003", 4000)
+        ));
     }
 
     @Test
@@ -172,5 +182,51 @@ public class BatteryControllerIntegrationTest {
         dto.setPostcode(postcode);
         dto.setCapacity(capacity);
         return dto;
+    }
+
+    @Test
+    void shouldReturnFilteredBatteriesAndStatsFromRealDB() throws Exception {
+
+        saveDefaultTestBatteries();
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "6000")
+                        .param("endPostcode", "6002"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.batteryNames").isArray())
+                .andExpect(jsonPath("$.batteryNames[0]").value("Alpha"))
+                .andExpect(jsonPath("$.batteryNames[1]").value("Beta"))
+                .andExpect(jsonPath("$.batteryNames[2]").value("Gamma"))
+                .andExpect(jsonPath("$.totalWattCapacity").value(6000))
+                .andExpect(jsonPath("$.averageWattCapacity").value(2000.0));
+    }
+
+    @Test
+    void shouldApplyMinCapacityFilterInIntegrationTest() throws Exception {
+
+        saveDefaultTestBatteries();
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "6000")
+                        .param("endPostcode", "6003")
+                        .param("minCapacity", "3000"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.batteryNames").isArray())
+                .andExpect(jsonPath("$.batteryNames[0]").value("Delta"))
+                .andExpect(jsonPath("$.batteryNames[1]").value("Gamma"))
+                .andExpect(jsonPath("$.totalWattCapacity").value(7000))
+                .andExpect(jsonPath("$.averageWattCapacity").value(3500.0));
+    }
+
+    @Test
+    void shouldReturnBadRequestForInvalidPostcodeInIntegration() throws Exception {
+
+        saveDefaultTestBatteries();
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "abc")
+                        .param("endPostcode", "6003"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists());
     }
 } 
