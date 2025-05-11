@@ -98,4 +98,21 @@ public class BatteryRepositoryTest {
                 7000, 8000, null, null);
         assertThat(results).isEmpty();
     }
+
+    @Test
+    void shouldCorrectlyConvertPostcodeToNumericInFactoryMethod() {
+        Battery battery = Battery.of("TestBattery", "0820", 1500);
+        assertThat(battery.getPostcode()).isEqualTo("0820");
+        assertThat(battery.getPostcodeNumeric()).isEqualTo(820);
+    }
+
+    @Test
+    void shouldFindBatteryWithLeadingZeroPostcode() {
+
+        batteryRepository.save(Battery.of("ZeroLead", "0820", 1500));
+        List<Battery> results = batteryRepository.findInRangeWithOptionalCapacity(
+                820, 820, null, null);
+        assertThat(results).extracting("name").containsExactly("ZeroLead");
+    }
+
 }

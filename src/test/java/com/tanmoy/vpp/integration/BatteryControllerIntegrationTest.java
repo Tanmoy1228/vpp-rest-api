@@ -229,4 +229,25 @@ public class BatteryControllerIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
     }
+
+    @Test
+    void shouldPreserveLeadingZeroInPostcodeInApiResponse() throws Exception {
+
+        BatteryRequestDto battery = createBatteryDto("BatteryWithZero", "0820", 1200);
+
+        BatteryListRequest request = new BatteryListRequest();
+        request.setBatteries(List.of(battery));
+
+        mockMvc.perform(post("/api/batteries")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "0820")
+                        .param("endPostcode", "0820"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.batteryNames[0]").value("BatteryWithZero"));
+    }
+
 } 
