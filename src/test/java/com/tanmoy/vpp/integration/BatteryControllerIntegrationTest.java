@@ -12,9 +12,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -118,6 +121,49 @@ public class BatteryControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors['batteries[0].capacity']").exists());
+    }
+
+    @Test
+    void shouldHandleConcurrentRequests() throws Exception {
+
+        int numberOfConcurrentRequests = 100;
+        CountDownLatch latch = new CountDownLatch(numberOfConcurrentRequests);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        List<Future<ResultActions>> futures = new ArrayList<>();
+
+        for (int i = 0; i < numberOfConcurrentRequests; i++) {
+            int index = i;
+            futures.add(executorService.submit(() -> {
+                try {
+                    BatteryRequestDto dto = createBatteryDto(
+                            "ConcurrentBattery-" + index, "600" + (index % 10), 1000 + index);
+
+                    BatteryListRequest request = new BatteryListRequest();
+                    request.setBatteries(List.of(dto));
+
+                    String json = objectMapper.writeValueAsString(request);
+
+                    ResultActions result = mockMvc.perform(post("/api/batteries")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json));
+
+                    latch.countDown();
+                    return result;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+        }
+
+        latch.await(30, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        for (Future<ResultActions> future : futures) {
+            future.get().andExpect(status().isCreated());
+        }
+
+        List<Battery> saved = batteryRepository.findAll();
+        assertThat(saved).hasSize(numberOfConcurrentRequests);
     }
 
     private BatteryRequestDto createBatteryDto(String name, String postcode, Integer capacity) {
