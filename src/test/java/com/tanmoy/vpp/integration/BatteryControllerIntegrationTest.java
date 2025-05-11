@@ -48,10 +48,10 @@ public class BatteryControllerIntegrationTest {
 
     private void saveDefaultTestBatteries() {
         batteryRepository.saveAll(List.of(
-                new Battery("Alpha", "6000", 1000),
-                new Battery("Beta", "6001", 2000),
-                new Battery("Gamma", "6002", 3000),
-                new Battery("Delta", "6003", 4000)
+                Battery.of("Alpha", "6000", 1000),
+                Battery.of("Beta", "6001", 2000),
+                Battery.of("Gamma", "6002", 3000),
+                Battery.of("Delta", "6003", 4000)
         ));
     }
 
@@ -229,4 +229,25 @@ public class BatteryControllerIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
     }
+
+    @Test
+    void shouldPreserveLeadingZeroInPostcodeInApiResponse() throws Exception {
+
+        BatteryRequestDto battery = createBatteryDto("BatteryWithZero", "0820", 1200);
+
+        BatteryListRequest request = new BatteryListRequest();
+        request.setBatteries(List.of(battery));
+
+        mockMvc.perform(post("/api/batteries")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "0820")
+                        .param("endPostcode", "0820"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.batteryNames[0]").value("BatteryWithZero"));
+    }
+
 } 

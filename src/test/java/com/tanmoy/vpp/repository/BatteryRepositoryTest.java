@@ -22,16 +22,16 @@ public class BatteryRepositoryTest {
     @BeforeEach
     void setup() {
         batteryRepository.saveAll(List.of(
-                new Battery("Alpha", "6000", 1000),
-                new Battery("Beta", "6001", 2000),
-                new Battery("Gamma", "6002", 3000)
+                Battery.of("Alpha", "6000", 1000),
+                Battery.of("Beta", "6001", 2000),
+                Battery.of("Gamma", "6002", 3000)
         ));
     }
 
     @Test
     void shouldPersistBatteryEntity() {
 
-        Battery battery = new Battery("Battery", "1234", 3000);
+        Battery battery = Battery.of("Battery", "1234", 3000);
         Battery savedBattery = batteryRepository.save(battery);
 
         assertThat(savedBattery).isNotNull();
@@ -45,9 +45,9 @@ public class BatteryRepositoryTest {
     void shouldSaveAllBatteries() {
 
         List<Battery> batteries = List.of(
-                new Battery("Battery1", "6000", 1000),
-                new Battery("Battery2", "6001", 2000),
-                new Battery("Battery3", "6002", 3000)
+                Battery.of("Battery1", "6000", 1000),
+                Battery.of("Battery2", "6001", 2000),
+                Battery.of("Battery3", "6002", 3000)
         );
 
         List<Battery> savedBatteries = batteryRepository.saveAll(batteries);
@@ -60,7 +60,7 @@ public class BatteryRepositoryTest {
     @Test
     void shouldFindBatteryById() {
 
-        Battery battery = new Battery("Battery", "1234", 3000);
+        Battery battery = Battery.of("Battery", "1234", 3000);
 
         Battery savedBattery = batteryRepository.save(battery);
         Optional<Battery> foundBattery = batteryRepository.findById(savedBattery.getId());
@@ -98,4 +98,21 @@ public class BatteryRepositoryTest {
                 7000, 8000, null, null);
         assertThat(results).isEmpty();
     }
+
+    @Test
+    void shouldCorrectlyConvertPostcodeToNumericInFactoryMethod() {
+        Battery battery = Battery.of("TestBattery", "0820", 1500);
+        assertThat(battery.getPostcode()).isEqualTo("0820");
+        assertThat(battery.getPostcodeNumeric()).isEqualTo(820);
+    }
+
+    @Test
+    void shouldFindBatteryWithLeadingZeroPostcode() {
+
+        batteryRepository.save(Battery.of("ZeroLead", "0820", 1500));
+        List<Battery> results = batteryRepository.findInRangeWithOptionalCapacity(
+                820, 820, null, null);
+        assertThat(results).extracting("name").containsExactly("ZeroLead");
+    }
+
 }
