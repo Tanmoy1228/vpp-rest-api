@@ -1,6 +1,7 @@
 package com.tanmoy.vpp.controller;
 
 import com.tanmoy.vpp.dto.request.BatteryListRequest;
+import com.tanmoy.vpp.dto.response.BatterySearchResponseDto;
 import com.tanmoy.vpp.dto.response.SuccessResponseDto;
 import com.tanmoy.vpp.model.Battery;
 import com.tanmoy.vpp.service.BatteryService;
@@ -10,10 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,4 +46,24 @@ public class BatteryController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new SuccessResponseDto("Saved " + batteryListRequest.getBatteries().size() + " batteries successfully."));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<BatterySearchResponseDto> getBatteriesByPostcodeRange(
+            @RequestParam int startPostcode,
+            @RequestParam int endPostcode,
+            @RequestParam(required = false) Integer minCapacity,
+            @RequestParam(required = false) Integer maxCapacity) {
+
+        logger.info("Process search batteries request: " +
+                "StartPostcode={}, EndPostcode={}: START", startPostcode, endPostcode);
+
+        BatterySearchResponseDto response = batteryService.getBatteriesByPostcodeRange(
+                startPostcode, endPostcode, minCapacity, maxCapacity);
+
+        logger.info("Process search batteries request: " +
+                "StartPostcode={}, EndPostcode={}: COMPLETE", startPostcode, endPostcode);
+
+        return ResponseEntity.ok(response);
+    }
+
 }
