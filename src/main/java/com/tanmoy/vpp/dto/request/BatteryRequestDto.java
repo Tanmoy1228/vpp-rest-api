@@ -9,7 +9,7 @@ public class BatteryRequestDto {
     private String name;
 
     @NotBlank(message = ValidationMessages.POSTCODE_REQUIRED)
-    @Size(min = 1, max = 10, message = ValidationMessages.POSTCODE_SIZE)
+    @Pattern(regexp = "^\\d{4,10}$", message = ValidationMessages.POSTCODE_SIZE)
     private String postcode;
 
     @NotNull(message = ValidationMessages.CAPACITY_REQUIRED)

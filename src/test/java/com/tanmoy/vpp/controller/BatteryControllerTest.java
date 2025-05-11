@@ -59,7 +59,7 @@ public class BatteryControllerTest {
                 Arguments.of(newBattery(null, "6000", 1000), "name", "Battery name is required"),
                 Arguments.of(newBattery("Battery", null, 1000), "postcode", "Postcode is required"),
                 Arguments.of(newBattery("Battery", "6000", null), "capacity", "Capacity is required"),
-                Arguments.of(newBattery("Battery", "01234567890", 1000), "postcode", "Postcode must be between 1 and 10 characters"),
+                Arguments.of(newBattery("Battery", "01234567890", 1000), "postcode", "Postcode must be between 4 to 10 digits"),
                 Arguments.of(newBattery("Battery", "6000", -1), "capacity", "Capacity must be a positive number")
         );
     }
