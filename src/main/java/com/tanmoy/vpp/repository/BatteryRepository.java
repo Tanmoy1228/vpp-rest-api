@@ -10,9 +10,12 @@ import java.util.UUID;
 
 public interface BatteryRepository extends JpaRepository<Battery, UUID> {
 
-    @Query("SELECT b FROM Battery b WHERE CAST(b.postcode AS int) BETWEEN :startPostcode AND :endPostcode "
-            + "AND (:minCapacity IS NULL OR b.capacity >= :minCapacity) "
-            + "AND (:maxCapacity IS NULL OR b.capacity <= :maxCapacity)")
+    @Query("""
+        SELECT b FROM Battery b
+        WHERE b.postcodeNumeric BETWEEN :startPostcode AND :endPostcode
+        AND (:minCapacity IS NULL OR b.capacity >= :minCapacity)
+        AND (:maxCapacity IS NULL OR b.capacity <= :maxCapacity)
+    """)
     List<Battery> findInRangeWithOptionalCapacity(@Param("startPostcode") int startPostcode,
                                                   @Param("endPostcode") int endPostcode,
                                                   @Param("minCapacity") Integer minCapacity,
