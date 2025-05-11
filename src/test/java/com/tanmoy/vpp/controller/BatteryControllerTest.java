@@ -3,6 +3,8 @@ package com.tanmoy.vpp.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tanmoy.vpp.dto.request.BatteryListRequest;
 import com.tanmoy.vpp.dto.request.BatteryRequestDto;
+import com.tanmoy.vpp.dto.response.BatterySearchResponseDto;
+import com.tanmoy.vpp.exception.InvalidRangeException;
 import com.tanmoy.vpp.service.BatteryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,6 +24,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -146,5 +150,65 @@ public class BatteryControllerTest {
 
         long duration = System.currentTimeMillis() - start;
         assert duration < 5000 : "Bulk insert took too long: " + duration + "ms";
+    }
+
+    @Test
+    void shouldReturnBatteryStatsWhenValidRangeProvided() throws Exception {
+
+        List<String> names = List.of("Alpha", "Beta");
+        BatterySearchResponseDto mockResponse = new BatterySearchResponseDto(names, 3000L, 1500.0);
+
+        when(batteryService.getBatteriesByPostcodeRange(
+                6000, 6002, null, null)).thenReturn(mockResponse);
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "6000")
+                        .param("endPostcode", "6002"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.batteryNames").isArray())
+                .andExpect(jsonPath("$.batteryNames[0]").value("Alpha"))
+                .andExpect(jsonPath("$.totalWattCapacity").value(3000))
+                .andExpect(jsonPath("$.averageWattCapacity").value(1500.0));
+    }
+
+    @Test
+    void shouldReturnBadRequestForInvalidPostcodeParam() throws Exception {
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "abc")
+                        .param("endPostcode", "6002"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    void shouldReturnErrorForInvalidRange() throws Exception {
+
+        when(batteryService.getBatteriesByPostcodeRange(6002, 6000, null, null))
+                .thenThrow(new InvalidRangeException("Start postcode must be less than or equal to end postcode"));
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "6002")
+                        .param("endPostcode", "6000"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Start postcode must be less than or equal to end postcode"));
+    }
+
+    @Test
+    void shouldReturnEmptyListIfNoMatches() throws Exception {
+
+        BatterySearchResponseDto response = new BatterySearchResponseDto(
+                Collections.emptyList(), 0L, 0.0);
+
+        when(batteryService.getBatteriesByPostcodeRange(
+                9000, 9001, null, null)).thenReturn(response);
+
+        mockMvc.perform(get("/api/batteries/search")
+                        .param("startPostcode", "9000")
+                        .param("endPostcode", "9001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.batteryNames").isEmpty())
+                .andExpect(jsonPath("$.totalWattCapacity").value(0))
+                .andExpect(jsonPath("$.averageWattCapacity").value(0.0));
     }
 }
