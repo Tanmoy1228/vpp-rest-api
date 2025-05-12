@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
@@ -113,6 +115,21 @@ public class BatteryRepositoryTest {
         List<Battery> results = batteryRepository.findInRangeWithOptionalCapacity(
                 820, 820, null, null);
         assertThat(results).extracting("name").containsExactly("ZeroLead");
+    }
+
+    @Test
+    void shouldThrowExceptionForInvalidPostcode() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Battery.of("BadBattery", "60AB", 1000);
+        });
+    }
+
+    @Test
+    void shouldThrowExceptionForShortPostcode() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                Battery.of("ShortPostcode", "123", 1000)
+        );
+        assertEquals("Postcode must be a numeric string with 4 to 10 digits", ex.getMessage());
     }
 
 }
