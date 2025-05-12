@@ -1,6 +1,7 @@
 package com.tanmoy.vpp.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tanmoy.vpp.BasePostgresTest;
 import com.tanmoy.vpp.dto.request.BatteryListRequest;
 import com.tanmoy.vpp.dto.request.BatteryRequestDto;
 import com.tanmoy.vpp.model.Battery;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class BatteryControllerIntegrationTest {
+public class BatteryControllerIntegrationTest extends BasePostgresTest {
 
     @Autowired
     private MockMvc mockMvc;
