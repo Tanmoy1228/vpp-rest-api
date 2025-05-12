@@ -1,6 +1,7 @@
 package com.tanmoy.vpp.exception;
 
 import com.tanmoy.vpp.dto.response.ErrorResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Hidden
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LogManager.getLogger(GlobalExceptionHandler.class);

@@ -5,6 +5,8 @@ import com.tanmoy.vpp.dto.response.BatterySearchResponseDto;
 import com.tanmoy.vpp.dto.response.SuccessResponseDto;
 import com.tanmoy.vpp.model.Battery;
 import com.tanmoy.vpp.service.BatteryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +31,7 @@ public class BatteryController {
         this.batteryService = batteryService;
     }
 
+    @Operation(summary = "Insert a list of batteries")
     @PostMapping
     public ResponseEntity<SuccessResponseDto> insertBatteries(
             @RequestBody @Valid BatteryListRequest batteryListRequest) {
@@ -47,12 +50,13 @@ public class BatteryController {
                 .body(new SuccessResponseDto("Saved " + batteryListRequest.getBatteries().size() + " batteries successfully."));
     }
 
+    @Operation(summary = "Search batteries by postcode range")
     @GetMapping("/search")
     public ResponseEntity<BatterySearchResponseDto> getBatteriesByPostcodeRange(
-            @RequestParam int startPostcode,
-            @RequestParam int endPostcode,
-            @RequestParam(required = false) Integer minCapacity,
-            @RequestParam(required = false) Integer maxCapacity) {
+            @Parameter(description = "Start of postcode range") @RequestParam int startPostcode,
+            @Parameter(description = "End of postcode range") @RequestParam int endPostcode,
+            @Parameter(description = "Minimum capacity of battery") @RequestParam(required = false) Integer minCapacity,
+            @Parameter(description = "Maximum capacity of battery") @RequestParam(required = false) Integer maxCapacity) {
 
         logger.info("Process search batteries request: " +
                 "StartPostcode={}, EndPostcode={}: START", startPostcode, endPostcode);
