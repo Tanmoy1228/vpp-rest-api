@@ -1,5 +1,6 @@
 package com.tanmoy.vpp.repository;
 
+import com.tanmoy.vpp.BasePostgresTest;
 import com.tanmoy.vpp.model.Battery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-public class BatteryRepositoryTest {
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+public class BatteryRepositoryTest extends BasePostgresTest {
 
     @Autowired
     private BatteryRepository batteryRepository;
